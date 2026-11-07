@@ -1,0 +1,15 @@
+{
+  "name": "yuvi-family-ai-bot",
+  "version": "2.0.0",
+  "description": "Family and AI Messenger Bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@google/genai": "^0.1.1",
+    "axios": "^1.6.8",
+    "express": "^4.19.2",
+    "itz-ur-raza": "latest"
+  }
+}
