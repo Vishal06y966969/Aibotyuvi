@@ -37,34 +37,48 @@ function startInstance() {
 
       api.listenMqtt(async (err, event) => {
         if (err || !event) return;
-        const { threadID, type, author, senderID, body } = event;
+        
+        // Debugging ke liye terminal par message print karega
+        if (event.body) {
+          console.log(`📩 [MSG RECEIVED] From: ${event.senderID} | Text: ${event.body}`);
+        }
 
-        // --- ⌨️ COMMANDS ---
-        if (body && body.startsWith("!")) {
+        const threadID = event.threadID;
+        const senderID = event.senderID;
+        const body = event.body;
+
+        if (!body || senderID === botID) return;
+
+        // --- ⌨️ COMMANDS (! se shuru hone wale messages) ---
+        if (body.startsWith("!")) {
           const args = body.slice(1).trim().split(/\s+/);
           const cmd = args.shift().toLowerCase();
           
-          handleCommands({ 
-            api, event, args, cmd, OWNER_ID, 
-            input: args.join(" ") 
-          }).catch(e => console.error("Command Error:", e));
+          try {
+            console.log(`⚡ Executing Command: ${cmd}`);
+            await handleCommands({ 
+              api, event, args, cmd, OWNER_ID, 
+              input: args.join(" ") 
+            });
+          } catch (e) {
+            console.error("Command Error:", e);
+          }
+          return;
         }
 
-        // --- 🤖 SMART AI CHAT (Normal Messages) ---
-        else if (type === "message" && body && senderID !== botID && !body.startsWith("!")) {
-          try {
-            api.sendTypingIndicator(threadID, true);
+        // --- 🤖 SMART AI CHAT (Normal Messages - Bina !) ---
+        try {
+          api.sendTypingIndicator(threadID, true);
 
-            const response = await ai.models.generateContent({
-              model: 'gemini-2.5-flash',
-              contents: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hindi/Hinglish mein jawaab deta hai. User ka message yeh hai: "${body}"`,
-            });
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hindi/Hinglish mein jawaab deta hai. User ka message yeh hai: "${body}"`,
+          });
 
-            const aiReply = response.text || "Arre wah! Sahi hai. 😄";
-            api.sendMessage(aiReply, threadID, event.messageID);
-          } catch (error) {
-            console.error("AI Error:", error.message);
-          }
+          const aiReply = response.text || "Arre wah! Sahi hai. 😄";
+          api.sendMessage(aiReply, threadID, event.messageID);
+        } catch (error) {
+          console.error("AI Error:", error.message);
         }
       });
     });
