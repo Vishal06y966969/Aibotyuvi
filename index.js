@@ -115,8 +115,8 @@ function startInstance() {
           api.sendTypingIndicator(threadID, true);
 
           const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaار jawaab deta hai. User ka message yeh hai: "${body}"`,
+            model: 'gemini-2.0-flash',
+            contents: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaar jawaab deta hai. User ka message yeh hai: "${body}"`,
           });
 
           const aiReply = response.text || "Arre wah! Sahi hai. 😄";
