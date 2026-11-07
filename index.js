@@ -108,10 +108,9 @@ function startInstance() {
           return;
         }
 
-        // --- 🤖 SMART AI CHAT (Direct HTTP API) ---
+        // --- 🤖 SMART AI CHAT ---
         try {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
-          api.sendTypingIndicator(threadID, true);
 
           const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
           
@@ -127,7 +126,7 @@ function startInstance() {
           api.sendMessage(aiReply, threadID, event.messageID);
         } catch (error) {
           console.error("AI Error Details:", error.response?.data || error.message);
-          api.sendMessage("Arre thoda network ka chakkar hai bhai, baaki main theek hu! 😄", threadID, event.messageID);
+          api.sendMessage("Bhai abhi thoda system busy hai, par main theek hu! 😄", threadID, event.messageID);
         }
       });
     });
