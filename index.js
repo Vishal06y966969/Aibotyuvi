@@ -2,7 +2,6 @@ const login = require("itz-ur-raza");
 const fs = require("fs");
 const axios = require("axios");
 const express = require("express");
-const { GoogleGenAI } = require("@google/genai");
 const handleCommands = require("./commands");
 
 const app = express();
@@ -11,8 +10,8 @@ app.listen(process.env.PORT || 3000);
 
 if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
 
-// 🔑 Gemini API Key configured successfully
-const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6KIOgO612OTXXpEvlcAJFmR4TKEzbEQDSXIkKYqpwh31g" });
+// 🔑 Gemini API Key configured directly
+const GEMINI_API_KEY = "AQ.Ab8RN6KIOgO612OTXXpEvlcAJFmR4TKEzbEQDSXIkKYqpwh31g";
 
 const OWNER_ID = "61595178507849";
 const stateFile = "appstate1.json";
@@ -109,20 +108,25 @@ function startInstance() {
           return;
         }
 
-        // --- 🤖 SMART AI CHAT ---
+        // --- 🤖 SMART AI CHAT (Direct HTTP API) ---
         try {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
           api.sendTypingIndicator(threadID, true);
 
-          const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaar jawaab deta hai. User ka message yeh hai: "${body}"`,
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+          
+          const aiResponse = await axios.post(geminiUrl, {
+            contents: [{
+              parts: [{
+                text: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaar jawaab deta hai. User ka message yeh hai: "${body}"`
+              }]
+            }]
           });
 
-          const aiReply = response.text || "Arre wah! Sahi hai. 😄";
+          const aiReply = aiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Arre wah! Sahi hai. 😄";
           api.sendMessage(aiReply, threadID, event.messageID);
         } catch (error) {
-          console.error("AI Error:", error.message);
+          console.error("AI Error Details:", error.response?.data || error.message);
           api.sendMessage("Arre thoda network ka chakkar hai bhai, baaki main theek hu! 😄", threadID, event.messageID);
         }
       });
