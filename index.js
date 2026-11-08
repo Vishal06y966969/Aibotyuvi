@@ -10,9 +10,6 @@ app.listen(process.env.PORT || 3000);
 
 if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
 
-// 🔑 Direct Valid Gemini API Key
-const GEMINI_API_KEY = "AQ.Ab8RN6KNOhlkj4_Ol-tM3OOEU1veRDJz7535PVSDCoF8KARH5Q";
-
 const OWNER_ID = "61595178507849";
 const stateFile = "appstate1.json";
 
@@ -108,25 +105,21 @@ function startInstance() {
           return;
         }
 
-        // --- 🤖 SMART AI CHAT (Direct Clean REST API) ---
+        // --- 🤖 SMASHING UNLIMITED AI CHAT (No Key Required) ---
         try {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
 
-          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-          
-          const aiResponse = await axios.post(geminiUrl, {
-            contents: [{
-              parts: [{
-                text: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaar jawaab deta hai. User ka message yeh hai: "${body}"`
-              }]
-            }]
-          });
+          // Using a reliable public AI proxy endpoint that requires no API Key
+          const encodedPrompt = encodeURIComponent(`Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaar jawaab deta hai. User ka message yeh hai: ${body}`);
+          const publicAiUrl = `https://apis.davidcyriltech.my.id/ai/gemini?text=${encodedPrompt}`;
 
-          const aiReply = aiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Arre wah! Sahi hai. 😄";
+          const response = await axios.get(publicAiUrl);
+          const aiReply = response.data?.result || response.data?.message || "Arre wah! Sahi baat hai bhai! 😄";
+
           api.sendMessage(aiReply, threadID, event.messageID);
         } catch (error) {
-          console.error("❌ AI Error Details:", error.response?.data || error.message);
-          api.sendMessage("Arre bhai abhi thoda network busy hai, par main theek hu! 😄", threadID, event.messageID);
+          console.error("❌ AI Error:", error.message);
+          api.sendMessage("Bhai ekdum makkhan chal raha hai, par abhi thoda network slow hai! 😄", threadID, event.messageID);
         }
       });
     });
