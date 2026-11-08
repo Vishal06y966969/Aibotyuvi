@@ -114,7 +114,7 @@ function startInstance() {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
 
           const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.0-flash',
             contents: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaar jawaab deta hai. User ka message yeh hai: "${body}"`,
           });
 
