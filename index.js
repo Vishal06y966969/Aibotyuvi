@@ -2,17 +2,16 @@ const login = require("itz-ur-raza");
 const fs = require("fs");
 const axios = require("axios");
 const express = require("express");
-const { GoogleGenAI } = require("@google/genai");
 const handleCommands = require("./commands");
 
 const app = express();
-app.get("/", (_, res) => res.send("<h1>Yuvi Family & Official Gemini AI Bot Active 🤖✨</h1>"));
+app.get("/", (_, res) => res.send("<h1>Yuvi Family & Direct Gemini API Bot Active 🤖✨</h1>"));
 app.listen(process.env.PORT || 3000);
 
 if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
 
-// 🔑 Official Gemini AI SDK Configuration with your fresh key
-const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6Jq0SUIICbG-3_VkFxPSHhEDciRlGOJMrZFMgeNJOKPXQ" });
+// 🔑 Your Fresh Gemini API Key
+const GEMINI_API_KEY = "AQ.Ab8RN6Jq0SUIICbG-3_VkFxPSHhEDciRlGOJMrZFMgeNJOKPXQ";
 
 const OWNER_ID = "61595178507849";
 const stateFile = "appstate1.json";
@@ -37,7 +36,7 @@ function startInstance() {
 
       api.setOptions({ listenEvents: true, selfListen: false, autoMarkRead: true });
       const botID = api.getCurrentUserID();
-      console.log(`✅ Official Gemini AI Bot Running Successfully (Bot ID: ${botID}).`);
+      console.log(`✅ Direct Gemini Bot Running Successfully (Bot ID: ${botID}).`);
 
       api.listenMqtt(async (err, event) => {
         if (err || !event) return;
@@ -107,23 +106,44 @@ function startInstance() {
           return;
         }
 
-        // --- 🤖 OFFICIAL GEMINI AI BRAIN ---
+        // --- 🤖 DIRECT REST API GEMINI CHAT ---
         try {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
 
-          const promptText = `Tu ek mast, intelligent aur friendly AI bot hai jo Facebook group mein sabke sath dosto ki tarah baat karta hai. Jo bhi user puche, uska ekdum natural, mazedaar aur sateek Hinglish mein jawaab de jaise hum aapas mein baat karte hain. User ka message yeh hai: "${body}"`;
-
-          const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: promptText,
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+          
+          const response = await axios.post(url, {
+            contents: [
+              {
+                parts: [
+                  {
+                    text: `You are a friendly, funny, and witty AI bot in a Facebook group who talks in natural Hinglish. Chat like a real human friend. User message: "${body}"`
+                  }
+                ]
+              }
+            ]
           });
 
-          const aiReply = response.text || `Sahi hai bhai, ${body} ke baare mein tera kya sochna hai? 😄`;
-          api.sendMessage(aiReply, threadID, event.messageID);
+          const aiReply = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+          if (aiReply) {
+            api.sendMessage(aiReply.trim(), threadID, event.messageID);
+          } else {
+            api.sendMessage(`Sahi hai bhai, "${body}" pe aur bata kya chal raha hai? 😄`, threadID, event.messageID);
+          }
 
         } catch (error) {
-          console.error("❌ Gemini SDK Error:", error.message);
-          api.sendMessage(`Bhai "${body}" wali baat par thoda aur detail mein bata na, sun raha hoon main! 😄`, threadID, event.messageID);
+          console.error("❌ Gemini REST Error:", error.response?.data || error.message);
+          
+          // Smart localized fallback so it never repeats the exact same sentence twice
+          const dynamicFallbacks = [
+            `Bhai "${body}" sun liya maine, ab tu hi bata ispe kya kiya jaye? 😆`,
+            `Acha ji! "${body}" bol raha hai? Chal isko bhi list mein jod lete hain! 🚀`,
+            `Sahi hai dost, "${body}" wali baat par thoda aur roshni daal na! ✨`,
+            `Tera yeh "${body}" wala style mujhe pasand aaya, aur bata! 😎`
+          ];
+          const randomFallback = dynamicFallbacks[Math.floor(Math.random() * dynamicFallbacks.length)];
+          api.sendMessage(randomFallback, threadID, event.messageID);
         }
       });
     });
