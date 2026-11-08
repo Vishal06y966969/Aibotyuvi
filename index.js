@@ -5,13 +5,13 @@ const express = require("express");
 const handleCommands = require("./commands");
 
 const app = express();
-app.get("/", (_, res) => res.send("<h1>Yuvi Family & Direct Gemini API Bot Active 🤖✨</h1>"));
+app.get("/", (_, res) => res.send("<h1>Yuvi Family & Real AI Bot Active 🤖✨</h1>"));
 app.listen(process.env.PORT || 3000);
 
 if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
 
-// 🔑 Your Fresh Gemini API Key
-const GEMINI_API_KEY = "AQ.Ab8RN6Jq0SUIICbG-3_VkFxPSHhEDciRlGOJMrZFMgeNJOKPXQ";
+// 🔑 Teri nayi API Key
+const AI_API_KEY = "sk-tinyfish-A7Tu3gGetsWItTyuTL1JAGgwm0m5NsAW";
 
 const OWNER_ID = "61595178507849";
 const stateFile = "appstate1.json";
@@ -36,7 +36,7 @@ function startInstance() {
 
       api.setOptions({ listenEvents: true, selfListen: false, autoMarkRead: true });
       const botID = api.getCurrentUserID();
-      console.log(`✅ Direct Gemini Bot Running Successfully (Bot ID: ${botID}).`);
+      console.log(`✅ Real AI Bot Running Successfully (Bot ID: ${botID}).`);
 
       api.listenMqtt(async (err, event) => {
         if (err || !event) return;
@@ -106,44 +106,55 @@ function startInstance() {
           return;
         }
 
-        // --- 🤖 DIRECT REST API GEMINI CHAT ---
+        // --- 🤖 HIGH-LEVEL AI CHAT INTEGRATION ---
         try {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
 
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-          
-          const response = await axios.post(url, {
-            contents: [
-              {
-                parts: [
-                  {
-                    text: `You are a friendly, funny, and witty AI bot in a Facebook group who talks in natural Hinglish. Chat like a real human friend. User message: "${body}"`
-                  }
-                ]
+          const aiResponse = await axios.post(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              model: "gpt-3.5-turbo",
+              messages: [
+                {
+                  role: "system",
+                  content: "Tu ek mast, funny aur friendly AI bot hai jo Facebook group mein sabke sath dosto ki tarah Hinglish mein baat karta hai. User ke har sawaal ka bilkul natural aur alag jawaab de."
+                },
+                {
+                  role: "user",
+                  content: body
+                }
+              ]
+            },
+            {
+              headers: {
+                "Authorization": `Bearer ${AI_API_KEY}`,
+                "Content-Type": "application/json"
               }
-            ]
-          });
+            }
+          );
 
-          const aiReply = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          const aiReply = aiResponse.data?.choices?.[0]?.message?.content;
 
           if (aiReply) {
             api.sendMessage(aiReply.trim(), threadID, event.messageID);
           } else {
-            api.sendMessage(`Sahi hai bhai, "${body}" pe aur bata kya chal raha hai? 😄`, threadID, event.messageID);
+            throw new Error("Empty AI Response");
           }
 
         } catch (error) {
-          console.error("❌ Gemini REST Error:", error.response?.data || error.message);
+          console.error("❌ Primary AI Error:", error.response?.data || error.message);
           
-          // Smart localized fallback so it never repeats the exact same sentence twice
-          const dynamicFallbacks = [
-            `Bhai "${body}" sun liya maine, ab tu hi bata ispe kya kiya jaye? 😆`,
-            `Acha ji! "${body}" bol raha hai? Chal isko bhi list mein jod lete hain! 🚀`,
-            `Sahi hai dost, "${body}" wali baat par thoda aur roshni daal na! ✨`,
-            `Tera yeh "${body}" wala style mujhe pasand aaya, aur bata! 😎`
-          ];
-          const randomFallback = dynamicFallbacks[Math.floor(Math.random() * dynamicFallbacks.length)];
-          api.sendMessage(randomFallback, threadID, event.messageID);
+          // Smart backup call if standard endpoint differs
+          try {
+            const backupRes = await axios.get(`https://api.kenliejugarap.com/openai/?text=${encodeURIComponent(body)}`);
+            const backupReply = backupRes.data?.response || backupRes.data?.result;
+            if (backupReply) {
+              api.sendMessage(backupReply, threadID, event.messageID);
+              return;
+            }
+          } catch (e) {}
+
+          api.sendMessage(`Bhai "${body}" par soch raha hu, thoda aur detail mein bol! 😄`, threadID, event.messageID);
         }
       });
     });
