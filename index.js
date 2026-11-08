@@ -11,8 +11,8 @@ app.listen(process.env.PORT || 3000);
 
 if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
 
-// 🔑 Initialize official GoogleGenAI
-const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6KIOgO612OTXXpEvlcAJFmR4TKEzbEQDSXIkKYqpwh31g" });
+// 🔑 Gemini API Key configured successfully
+const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6KNOhlkj4_Ol-tM3OOEU1veRDJz7535PVSDCoF8KARH5Q" });
 
 const OWNER_ID = "61595178507849";
 const stateFile = "appstate1.json";
@@ -121,7 +121,7 @@ function startInstance() {
           const aiReply = response.text || "Arre wah! Sahi hai. 😄";
           api.sendMessage(aiReply, threadID, event.messageID);
         } catch (error) {
-          console.error("❌ Exact AI Error:", error);
+          console.error("❌ AI Error:", error);
           api.sendMessage(`🤖 AI Error: ${error.message || "Kuch gadbad ho gayi!"}`, threadID, event.messageID);
         }
       });
