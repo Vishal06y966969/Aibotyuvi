@@ -2,6 +2,7 @@ const login = require("itz-ur-raza");
 const fs = require("fs");
 const axios = require("axios");
 const express = require("express");
+const { GoogleGenAI } = require("@google/genai");
 const handleCommands = require("./commands");
 
 const app = express();
@@ -10,8 +11,8 @@ app.listen(process.env.PORT || 3000);
 
 if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
 
-// 🔑 Gemini API Key configured directly
-const GEMINI_API_KEY = "AQ.Ab8RN6KIOgO612OTXXpEvlcAJFmR4TKEzbEQDSXIkKYqpwh31g";
+// 🔑 Initialize official GoogleGenAI
+const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6KIOgO612OTXXpEvlcAJFmR4TKEzbEQDSXIkKYqpwh31g" });
 
 const OWNER_ID = "61595178507849";
 const stateFile = "appstate1.json";
@@ -112,21 +113,16 @@ function startInstance() {
         try {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
 
-          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-          
-          const aiResponse = await axios.post(geminiUrl, {
-            contents: [{
-              parts: [{
-                text: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaar jawaab deta hai. User ka message yeh hai: "${body}"`
-              }]
-            }]
+          const response = await ai.models.generateContent({
+            model: 'gemini-1.5-flash',
+            contents: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaar jawaab deta hai. User ka message yeh hai: "${body}"`,
           });
 
-          const aiReply = aiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text || "Arre wah! Sahi hai. 😄";
+          const aiReply = response.text || "Arre wah! Sahi hai. 😄";
           api.sendMessage(aiReply, threadID, event.messageID);
         } catch (error) {
-          console.error("AI Error Details:", error.response?.data || error.message);
-          api.sendMessage("Bhai abhi thoda system busy hai, par main theek hu! 😄", threadID, event.messageID);
+          console.error("❌ Exact AI Error:", error);
+          api.sendMessage(`🤖 AI Error: ${error.message || "Kuch gadbad ho gayi!"}`, threadID, event.messageID);
         }
       });
     });
