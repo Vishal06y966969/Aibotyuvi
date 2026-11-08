@@ -5,12 +5,12 @@ const express = require("express");
 const handleCommands = require("./commands");
 
 const app = express();
-app.get("/", (_, res) => res.send("<h1>Yuvi Family & Real AI Bot Active 🤖✨</h1>"));
+app.get("/", (_, res) => res.send("<h1>Yuvi Family & OpenRouter AI Bot Active 🤖✨</h1>"));
 app.listen(process.env.PORT || 3000);
 
 if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
 
-// 🔑 Teri nayi API Key
+// 🔑 Your TinyFish / OpenRouter API Key
 const AI_API_KEY = "sk-tinyfish-A7Tu3gGetsWItTyuTL1JAGgwm0m5NsAW";
 
 const OWNER_ID = "61595178507849";
@@ -36,7 +36,7 @@ function startInstance() {
 
       api.setOptions({ listenEvents: true, selfListen: false, autoMarkRead: true });
       const botID = api.getCurrentUserID();
-      console.log(`✅ Real AI Bot Running Successfully (Bot ID: ${botID}).`);
+      console.log(`✅ OpenRouter AI Bot Running Successfully (Bot ID: ${botID}).`);
 
       api.listenMqtt(async (err, event) => {
         if (err || !event) return;
@@ -106,18 +106,18 @@ function startInstance() {
           return;
         }
 
-        // --- 🤖 HIGH-LEVEL AI CHAT INTEGRATION ---
+        // --- 🤖 OPENROUTER / DEEPSEEK REAL AI BRAIN ---
         try {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
 
           const aiResponse = await axios.post(
-            "https://api.openai.com/v1/chat/completions",
+            "https://openrouter.ai/api/v1/chat/completions",
             {
-              model: "gpt-3.5-turbo",
+              model: "deepseek/deepseek-chat",
               messages: [
                 {
                   role: "system",
-                  content: "Tu ek mast, funny aur friendly AI bot hai jo Facebook group mein sabke sath dosto ki tarah Hinglish mein baat karta hai. User ke har sawaal ka bilkul natural aur alag jawaab de."
+                  content: "Tu ek mast, funny aur friendly AI bot hai jo Facebook group mein sabke sath dosto ki tarah Hinglish mein baat karta hai. Har sawaal ka bilkul natural aur alag jawaab de."
                 },
                 {
                   role: "user",
@@ -128,6 +128,8 @@ function startInstance() {
             {
               headers: {
                 "Authorization": `Bearer ${AI_API_KEY}`,
+                "HTTP-Referer": "https://github.com",
+                "X-Title": "YuviBot",
                 "Content-Type": "application/json"
               }
             }
@@ -142,19 +144,20 @@ function startInstance() {
           }
 
         } catch (error) {
-          console.error("❌ Primary AI Error:", error.response?.data || error.message);
+          console.error("❌ AI Error Details:", error.response?.data || error.message);
           
-          // Smart backup call if standard endpoint differs
+          // Instant Backup Free Public Proxy if OpenRouter rate-limits
           try {
-            const backupRes = await axios.get(`https://api.kenliejugarap.com/openai/?text=${encodeURIComponent(body)}`);
-            const backupReply = backupRes.data?.response || backupRes.data?.result;
-            if (backupReply) {
-              api.sendMessage(backupReply, threadID, event.messageID);
+            const fallbackUrl = `https://bk9.fun/ai/gemini?q=${encodeURIComponent(body)}`;
+            const fbRes = await axios.get(fallbackUrl);
+            const fbReply = fbRes.data?.BK9 || fbRes.data?.result;
+            if (fbReply) {
+              api.sendMessage(fbReply, threadID, event.messageID);
               return;
             }
           } catch (e) {}
 
-          api.sendMessage(`Bhai "${body}" par soch raha hu, thoda aur detail mein bol! 😄`, threadID, event.messageID);
+          api.sendMessage(`Bhai "${body}" wali baat par maza aa gaya, aur bata kya chal raha hai? 😄`, threadID, event.messageID);
         }
       });
     });
