@@ -11,7 +11,7 @@ app.listen(process.env.PORT || 3000);
 
 if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
 
-// 🔑 Gemini API Key configured successfully
+// 🔑 Gemini API Key
 const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6KNOhlkj4_Ol-tM3OOEU1veRDJz7535PVSDCoF8KARH5Q" });
 
 const OWNER_ID = "61595178507849";
@@ -114,7 +114,7 @@ function startInstance() {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
 
           const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-3.8-flash',
             contents: `Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaar jawaab deta hai. User ka message yeh hai: "${body}"`,
           });
 
