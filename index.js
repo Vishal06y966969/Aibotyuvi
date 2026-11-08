@@ -2,6 +2,7 @@ const login = require("itz-ur-raza");
 const fs = require("fs");
 const axios = require("axios");
 const express = require("express");
+const { GoogleGenAI } = require("@google/genai");
 const handleCommands = require("./commands");
 
 const app = express();
@@ -9,6 +10,9 @@ app.get("/", (_, res) => res.send("<h1>Yuvi Family & AI Smart Bot Active 🤖✨
 app.listen(process.env.PORT || 3000);
 
 if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
+
+// 🔑 Gemini API Key configured directly
+const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6KNOhlkj4_Ol-tM3OOEU1veRDJz7535PVSDCoF8KARH5Q" });
 
 const OWNER_ID = "61595178507849";
 const stateFile = "appstate1.json";
@@ -105,24 +109,34 @@ function startInstance() {
           return;
         }
 
-        // --- 🤖 NATURAL CONVERSATIONAL AI CHAT ---
+        // --- 🤖 REAL GEMINI SDK AI CHAT ---
         try {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
 
-          // Custom smart persona so bot chats naturally like a human friend in Hinglish
-          const prompt = `Tu ek mast, intelligent aur friendly AI bot hai jo Facebook group mein sabke sath dosto ki tarah baat karta hai. Jo bhi user tujhse puche, uska ekdum natural, mazedaar aur sateek Hinglish mein jawaab de jaise hum aapas mein baat karte hain. User ka message yeh hai: "${body}"`;
-          const encodedPrompt = encodeURIComponent(prompt);
-          
-          const aiUrl = `https://hercai.onrender.com/gemini?question=${encodedPrompt}`;
-          const response = await axios.get(aiUrl);
-          
-          const aiReply = response.data?.reply || response.data?.data || `Sahi hai bhai, ${body} ke baare mein tera kya sochna hai? 😄`;
+          // Fallback mechanism across models to ensure it never fails
+          let responseText = "";
+          const promptText = `Tu ek mast, intelligent aur friendly AI bot hai jo Facebook group mein sabke sath dosto ki tarah baat karta hai. Jo bhi user puche, uska ekdum natural, mazedaar aur sateek Hinglish mein jawaab de jaise hum aapas mein baat karte hain. User ka message yeh hai: "${body}"`;
 
+          try {
+            const res1 = await ai.models.generateContent({
+              model: 'gemini-2.5-flash',
+              contents: promptText,
+            });
+            responseText = res1.text;
+          } catch (err1) {
+            const res2 = await ai.models.generateContent({
+              model: 'gemini-1.5-flash',
+              contents: promptText,
+            });
+            responseText = res2.text;
+          }
+
+          const aiReply = responseText || `Sahi hai bhai, ${body} ke baare mein tera kya sochna hai? 😄`;
           api.sendMessage(aiReply, threadID, event.messageID);
         } catch (error) {
-          console.error("❌ AI Error:", error.message);
-          // Smart human-like fallback if server hiccups
-          api.sendMessage(`Arre bhai, baat toh teri theek hai par ispe thoda aur detail mein bata na! 😄`, threadID, event.messageID);
+          console.error("❌ AI Error Details:", error.message);
+          // Dynamic fallback matching user input so it never repeats a single saved line
+          api.sendMessage(`Bhai ${body} wali baat par sochna padega, tu thoda aur khul ke bata ispe! 😄`, threadID, event.messageID);
         }
       });
     });
