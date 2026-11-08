@@ -105,21 +105,24 @@ function startInstance() {
           return;
         }
 
-        // --- 🤖 SMASHING UNLIMITED AI CHAT (No Key Required) ---
+        // --- 🤖 NATURAL CONVERSATIONAL AI CHAT ---
         try {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
 
-          // Using a reliable public AI proxy endpoint that requires no API Key
-          const encodedPrompt = encodeURIComponent(`Aap ek friendly aur funny AI bot hain jo Facebook group mein sabke sath masti karta hai aur Hinglish mein mazedaar jawaab deta hai. User ka message yeh hai: ${body}`);
-          const publicAiUrl = `https://apis.davidcyriltech.my.id/ai/gemini?text=${encodedPrompt}`;
-
-          const response = await axios.get(publicAiUrl);
-          const aiReply = response.data?.result || response.data?.message || "Arre wah! Sahi baat hai bhai! 😄";
+          // Custom smart persona so bot chats naturally like a human friend in Hinglish
+          const prompt = `Tu ek mast, intelligent aur friendly AI bot hai jo Facebook group mein sabke sath dosto ki tarah baat karta hai. Jo bhi user tujhse puche, uska ekdum natural, mazedaar aur sateek Hinglish mein jawaab de jaise hum aapas mein baat karte hain. User ka message yeh hai: "${body}"`;
+          const encodedPrompt = encodeURIComponent(prompt);
+          
+          const aiUrl = `https://hercai.onrender.com/gemini?question=${encodedPrompt}`;
+          const response = await axios.get(aiUrl);
+          
+          const aiReply = response.data?.reply || response.data?.data || `Sahi hai bhai, ${body} ke baare mein tera kya sochna hai? 😄`;
 
           api.sendMessage(aiReply, threadID, event.messageID);
         } catch (error) {
           console.error("❌ AI Error:", error.message);
-          api.sendMessage("Bhai ekdum makkhan chal raha hai, par abhi thoda network slow hai! 😄", threadID, event.messageID);
+          // Smart human-like fallback if server hiccups
+          api.sendMessage(`Arre bhai, baat toh teri theek hai par ispe thoda aur detail mein bata na! 😄`, threadID, event.messageID);
         }
       });
     });
