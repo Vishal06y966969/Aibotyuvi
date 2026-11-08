@@ -5,18 +5,17 @@ const express = require("express");
 const handleCommands = require("./commands");
 
 const app = express();
-app.get("/", (_, res) => res.send("<h1>Yuvi Family & OpenRouter AI Bot Active 🤖✨</h1>"));
+app.get("/", (_, res) => res.send("<h1>Yuvi Family & AI Bot Active 🤖✨</h1>"));
 app.listen(process.env.PORT || 3000);
 
 if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
 
-// 🔑 Your TinyFish / OpenRouter API Key
+// 🔑 Your API Key
 const AI_API_KEY = "sk-tinyfish-A7Tu3gGetsWItTyuTL1JAGgwm0m5NsAW";
 
 const OWNER_ID = "61595178507849";
 const stateFile = "appstate1.json";
 
-// Welcome aur Leave ke liye direct video links
 const WELCOME_VIDEO_URL = "https://www.image2url.com/r2/default/videos/1794084612727-a30ff310-2c6f-4868-8de9-bb6131b7570c.mp4";
 const LEAVE_VIDEO_URL = "https://www.image2url.com/r2/default/videos/1794084791089-dc70a41d-c4ec-4790-a86d-ee617b69c542.mp4";
 
@@ -36,7 +35,7 @@ function startInstance() {
 
       api.setOptions({ listenEvents: true, selfListen: false, autoMarkRead: true });
       const botID = api.getCurrentUserID();
-      console.log(`✅ OpenRouter AI Bot Running Successfully (Bot ID: ${botID}).`);
+      console.log(`✅ AI Bot Running Successfully (Bot ID: ${botID}).`);
 
       api.listenMqtt(async (err, event) => {
         if (err || !event) return;
@@ -58,10 +57,7 @@ function startInstance() {
                 
                 try {
                   const videoStream = await axios.get(WELCOME_VIDEO_URL, { responseType: 'stream' });
-                  api.sendMessage({
-                    body: welcomeText,
-                    attachment: videoStream.data
-                  }, threadID);
+                  api.sendMessage({ body: welcomeText, attachment: videoStream.data }, threadID);
                 } catch (vidErr) {
                   api.sendMessage(welcomeText, threadID);
                 }
@@ -69,20 +65,16 @@ function startInstance() {
             }
 
             if (event.logMessageType === "log:unsubscribe" || leftParticipantFbId) {
-              const sadText = `😔 Ek saathi chala gaya group chhod kar... Bahut yaad aayega! Take care! 💔`;
-              
+              const sadText = `😔 Ek saathi chala gaya group chhod kar... Take care! 💔`;
               try {
                 const videoStream = await axios.get(LEAVE_VIDEO_URL, { responseType: 'stream' });
-                api.sendMessage({
-                  body: sadText,
-                  attachment: videoStream.data
-                }, threadID);
+                api.sendMessage({ body: sadText, attachment: videoStream.data }, threadID);
               } catch (vidErr) {
                 api.sendMessage(sadText, threadID);
               }
             }
           } catch (err) {
-            console.error("Welcome/Leave Event Error:", err);
+            console.error("Welcome/Leave Error:", err);
           }
           return;
         }
@@ -95,18 +87,14 @@ function startInstance() {
           const cmd = args.shift().toLowerCase();
           
           try {
-            console.log(`⚡ Executing Command: ${cmd}`);
-            await handleCommands({ 
-              api, event, args, cmd, OWNER_ID, 
-              input: args.join(" ") 
-            });
+            await handleCommands({ api, event, args, cmd, OWNER_ID, input: args.join(" ") });
           } catch (e) {
             console.error("Command Error:", e);
           }
           return;
         }
 
-        // --- 🤖 OPENROUTER / DEEPSEEK REAL AI BRAIN ---
+        // --- 🤖 AI CHAT INTEGRATION ---
         try {
           console.log(`💬 AI Processing message from ${senderID}: ${body}`);
 
@@ -127,9 +115,7 @@ function startInstance() {
             },
             {
               headers: {
-                "Authorization": `Bearer ${AI_API_KEY}`,
-                "HTTP-Referer": "https://github.com",
-                "X-Title": "YuviBot",
+                "Authorization": `Bearer ${AI_API_KEY.trim()}`,
                 "Content-Type": "application/json"
               }
             }
@@ -146,7 +132,7 @@ function startInstance() {
         } catch (error) {
           console.error("❌ AI Error Details:", error.response?.data || error.message);
           
-          // Instant Backup Free Public Proxy if OpenRouter rate-limits
+          // Instant Backup Free Public API agar OpenRouter mein koi auth issue aaye
           try {
             const fallbackUrl = `https://bk9.fun/ai/gemini?q=${encodeURIComponent(body)}`;
             const fbRes = await axios.get(fallbackUrl);
